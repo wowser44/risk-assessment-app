@@ -121,7 +121,7 @@
     "id": "SCOR-P",
     "role": "All",
     "prompt": "Select the likelihood of occurrence (Probability).",
-    "field": "Probability (P)",
+    "field": "Probability (P)",   <-- must match Excel
     "type": "select",
     "options": {
       "4": "P4 \u2013 \u2265 1 in 100 (Frequent)",
