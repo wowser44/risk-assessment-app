@@ -1,5 +1,4 @@
 [
-  /* ─────────────── 1.1  Business / Process Owner ─────────────── */
   {
     "id": "B-CRIT-1",
     "role": "Business",
@@ -36,7 +35,6 @@
     "type": "text"
   },
 
-  /* ─────────────── 1.2  Quality / QA ─────────────── */
   {
     "id": "Q-INT-1",
     "role": "QA",
@@ -73,7 +71,6 @@
     "type": "text"
   },
 
-  /* ─────────────── 1.3  IT / Technical Owner ─────────────── */
   {
     "id": "I-ARCH-1",
     "role": "IT",
@@ -110,7 +107,6 @@
     "type": "text"
   },
 
-  /* ───────────────  Scoring drop-downs (shared across roles) ─────────────── */
   {
     "id": "SCOR-S",
     "role": "All",
