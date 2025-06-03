@@ -34,15 +34,76 @@
     "field": "Applicable Regulations",
     "type": "text"
   },  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  {
+    "id": "Q-INT-1",
+    "role": "QA",
+    "prompt": "Does the system create, modify or store GxP-critical data?",
+    "field": "GxP Critical Data?",
+    "type": "text"
+  },
+  {
+    "id": "Q-SIG-1",
+    "role": "QA",
+    "prompt": "Are electronic signatures used for regulatory decisions?",
+    "field": "Electronic Signatures?",
+    "type": "text"
+  },
+  {
+    "id": "Q-COMP-1",
+    "role": "QA",
+    "prompt": "Is the system configurable only or also customisable?",
+    "field": "Config vs Custom",
+    "type": "text"
+  },
+  {
+    "id": "Q-SUP-1",
+    "role": "QA",
+    "prompt": "Supplier classification (category 1-3 from GAMP 5 2nd Ed.)?",
+    "field": "Supplier Category",
+    "type": "text"
+  },
+  {
+    "id": "Q-HIST-1",
+    "role": "QA",
+    "prompt": "Have we had major deviations/CAPAs on similar systems in the past 24 months?",
+    "field": "Historical Deviations?",
+    "type": "text"
+  },
+  {
+    "id": "I-ARCH-1",
+    "role": "IT",
+    "prompt": "Deployment model: on-prem, private cloud, SaaS multi-tenant?",
+    "field": "Deployment Model",
+    "type": "text"
+  },
+  {
+    "id": "I-AUTO-1",
+    "role": "IT",
+    "prompt": "How frequent are vendor releases or auto-updates?",
+    "field": "Release Frequency",
+    "type": "text"
+  },
+  {
+    "id": "I-BACK-1",
+    "role": "IT",
+    "prompt": "What is the validated backup & restore RTO/RPO?",
+    "field": "Backup RTO/RPO",
+    "type": "text"
+  },
+  {
+    "id": "I-INT-1",
+    "role": "IT",
+    "prompt": "List all external system interfaces (ERP, LIMS, IoT).",
+    "field": "External Interfaces",
+    "type": "text"
+  },
+  {
+    "id": "I-SEC-1",
+    "role": "IT",
+    "prompt": "Any open internet endpoints or mobile access?",
+    "field": "Internet Endpoints?",
+    "type": "text"
+  },
   {
     "id": "SCOR-S",
     "role": "All",
