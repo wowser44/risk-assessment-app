@@ -17,6 +17,23 @@ QUESTION_FILE = Path(__file__).with_name("questions.json")
 with open(QUESTION_FILE, "r") as f:
     QUESTIONS = json.load(f)
 
+# --- ensure q_idx exists early ---
+if "q_idx" not in st.session_state:
+    st.session_state.q_idx = 0
+
+# ---------- Role filter ----------
+roles = sorted({q["role"] for q in QUESTIONS if q["role"] != "All"})
+chosen_role = st.selectbox("Role filter", ["All"] + roles)
+
+visible_questions = [
+    q for q in QUESTIONS
+    if chosen_role == "All" or q["role"] == chosen_role
+]
+
+# keep index in bounds
+if st.session_state.q_idx >= len(visible_questions):
+    st.session_state.q_idx = 0
+
 # ---------- 4. page config ----------
 st.set_page_config(page_title="Risk Assessment Builder", layout="wide")
 st.title("Risk Assessment Builder (MVP)")
