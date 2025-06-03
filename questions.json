@@ -1,0 +1,54 @@
+[
+  {
+    "id": "B-CRIT-1",
+    "role": "Business",
+    "prompt": "What business objective will fail if this system malfunctions?",
+    "field": "Hazard / Failure Mode",
+    "type": "text"
+  },
+  {
+    "id": "B-SEV-1",
+    "role": "Business",
+    "prompt": "Select the worst credible patient outcome.",
+    "field": "Severity (S)",
+    "type": "select",
+    "options": {
+      "4": "Death or life-threatening injury",
+      "3": "Non-reversible impairment / hospitalisation",
+      "2": "Reversible injury or product recall",
+      "1": "No patient harm; only compliance impact"
+    }
+  },
+  {
+    "id": "B-PROB-1",
+    "role": "Business",
+    "prompt": "How often could this failure happen?",
+    "field": "Probability (P)",
+    "type": "select",
+    "options": {
+      "4": "≥ 1 in 100 (Frequent)",
+      "3": "1 in 100–1 000 (Occasional)",
+      "2": "1 in 1 000–10 000 (Remote)",
+      "1": "< 1 in 10 000 (Improbable)"
+    }
+  },
+  {
+    "id": "QA-DET-1",
+    "role": "QA",
+    "prompt": "How likely is detection before product release?",
+    "field": "Detectability (D)",
+    "type": "select",
+    "options": {
+      "3": "Undetectable",
+      "2": "Usually detected by operator / QC",
+      "1": "Automatically blocked or alarmed"
+    }
+  },
+  {
+    "id": "QA-MIT-1",
+    "role": "QA",
+    "prompt": "Describe any mitigation you propose.",
+    "field": "Mitigation",
+    "type": "text"
+  }
+]
