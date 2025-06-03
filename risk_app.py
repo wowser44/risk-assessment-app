@@ -1,75 +1,68 @@
-# ---------- 1. imports ----------
+# ---------- 1. Imports ----------
 import json
 from pathlib import Path
-import io
 import pandas as pd
 import streamlit as st
 
-# ---------- 2. load template workbook ----------
-TEMPLATE_PATH = Path(__file__).with_name("risk_template.xlsx")
-if TEMPLATE_PATH.exists():
-    default_df = pd.read_excel(TEMPLATE_PATH, sheet_name="Assessment")
-else:
-    default_df = pd.DataFrame()          # empty fallback
+# ---------- 2. Page config (must be FIRST Streamlit call) ----------
+st.set_page_config(page_title="Risk Assessment Builder", layout="wide")
+st.title("Risk Assessment Builder (MVP)")
 
-# ---------- 3. load question library ----------
+# ---------- 3. Load template workbook ----------
+TEMPLATE_PATH = Path(__file__).with_name("risk_template.xlsx")
+default_df = (
+    pd.read_excel(TEMPLATE_PATH, sheet_name="Assessment")
+    if TEMPLATE_PATH.exists()
+    else pd.DataFrame()
+)
+
+# ---------- 4. Load question library ----------
 QUESTION_FILE = Path(__file__).with_name("questions.json")
 with open(QUESTION_FILE, "r") as f:
     QUESTIONS = json.load(f)
 
-# --- ensure q_idx exists early ---
+# ---------- 5. Ensure session keys ----------
 if "q_idx" not in st.session_state:
     st.session_state.q_idx = 0
-
-# ---------- Role filter ----------
-roles = sorted({q["role"] for q in QUESTIONS if q["role"] != "All"})
-chosen_role = st.selectbox("Role filter", ["All"] + roles)
-
-visible_questions = [
-    q for q in QUESTIONS
-    if chosen_role == "All" or q["role"] == chosen_role
-]
-
-# keep index in bounds
-if st.session_state.q_idx >= len(visible_questions):
-    st.session_state.q_idx = 0
-
-# ---------- 4. page config ----------
-st.set_page_config(page_title="Risk Assessment Builder", layout="wide")
-st.title("Risk Assessment Builder (MVP)")
-
-# ------------------------------------------------------------------
-# SECTION A ─────────────────────────────────────────────────────────
-# GUIDED Q&A “wizard”  (Sprint-1 feature)
-# ------------------------------------------------------------------
-st.header("🧭 Guided risk entry")
-
-# initialise a blank session-state frame once per browser session
 if "wizard_df" not in st.session_state:
     st.session_state.wizard_df = default_df.copy().iloc[0:0]
 
+# ---------- 6. Helper: colour scores in DataFrame ----------
+def colour_scores(val):
+    try:
+        v = float(val)
+    except (TypeError, ValueError):
+        return ""
+    if v >= 40:
+        return "background-color:#FFC7CE"
+    if v >= 15:
+        return "background-color:#FFEB9C"
+    if v > 0:
+        return "background-color:#C6EFCE"
+    return ""
+
+# ------------------------------------------------------------------
+# SECTION A – GUIDED Q&A WIZARD
+# ------------------------------------------------------------------
+st.header("🧭 Guided risk entry")
+
+# Role filter
 roles = sorted({q["role"] for q in QUESTIONS if q["role"] != "All"})
 chosen_role = st.selectbox("Role filter", ["All"] + roles)
 
-# filter list just for this display cycle
 visible_questions = [
     q for q in QUESTIONS
     if chosen_role == "All" or q["role"] == chosen_role
 ]
-# keep index in bounds
+
 if st.session_state.q_idx >= len(visible_questions):
     st.session_state.q_idx = 0
-q = visible_questions[st.session_state.q_idx]
 
-
-# pick which question we’re on
-if "q_idx" not in st.session_state:
-    st.session_state.q_idx = 0            # start at first question
-
+# Navigation buttons
 def go(step: int):
     st.session_state.q_idx = (
         st.session_state.q_idx + step
-    ) % len(visible_questions)                    # wrap around
+    ) % len(visible_questions)
 
 col_prev, col_next = st.columns(2)
 with col_prev:
@@ -77,76 +70,88 @@ with col_prev:
 with col_next:
     st.button("Next ➡️", on_click=go, args=(+1,))
 
+# Current question
 q = visible_questions[st.session_state.q_idx]
+st.subheader(f"{q['role']} Q: {q['prompt']}")
 
-# draw the right input control
+# Input control
 if q["type"] == "text":
     answer = st.text_area("Answer")
 elif q["type"] == "select":
     friendly = list(q["options"].values())
     choice = st.selectbox("Choose one", friendly)
-    answer = int({v: k for k, v in q["options"].items()}[choice])  # numeric int
+    answer = int({v: k for k, v in q["options"].items()}[choice])
 
-# save the answer into the hidden DataFrame
+# Save answer
 if st.button("Save answer"):
-    if st.session_state.wizard_df.empty:                       # first row
-        new_row = default_df.iloc[0:0].copy()
+    if st.session_state.wizard_df.empty:
+        blank = default_df.iloc[0:0].copy()
         st.session_state.wizard_df = pd.concat(
-            [st.session_state.wizard_df, new_row], ignore_index=True
+            [st.session_state.wizard_df, blank], ignore_index=True
         )
 
     row_idx = 0
-    target_col = q["field"]
-    st.session_state.wizard_df.at[row_idx, target_col] = answer
+    st.session_state.wizard_df.at[row_idx, q["field"]] = answer
 
-    # ── Inherent risk (score columns E/J in Excel) ──
+    # ----- Inherent score -----
     row = st.session_state.wizard_df.iloc[row_idx]
     ready = all(
-        pd.notna(row[c]) for c in ["Severity (S)", "Probability (P)", "Detectability (D)"]
+        pd.notna(row[c])
+        for c in ["Severity (S)", "Probability (P)", "Detectability (D)"]
     )
     if ready:
         st.session_state.wizard_df.at[row_idx, "Risk Score"] = (
-            int(row["Severity (S)"]) *
-            int(row["Probability (P)"]) *
-            int(row["Detectability (D)"])
+            int(row["Severity (S)"])
+            * int(row["Probability (P)"])
+            * int(row["Detectability (D)"])
         )
 
-    # ── Residual-risk round: when Mitigation just saved ──
+    # ----- Residual score when Mitigation saved -----
     if q["field"] == "Mitigation" and ready:
-        # copy inherent S/P/D across
-        st.session_state.wizard_df.at[row_idx, "Residual S"] = row["Severity (S)"]
-        st.session_state.wizard_df.at[row_idx, "Residual P"] = row["Probability (P)"]
-        st.session_state.wizard_df.at[row_idx, "Residual D"] = row["Detectability (D)"]
-        # calculate residual score (unchanged numbers for now)
+        for col in ["S", "P", "D"]:
+            st.session_state.wizard_df.at[row_idx, f"Residual {col}"] = row[f"{'Severity' if col=='S' else 'Probability' if col=='P' else 'Detectability'} ({col})"]
         st.session_state.wizard_df.at[row_idx, "Residual Score"] = (
-            int(row["Residual S"]) *
-            int(row["Residual P"]) *
-            int(row["Residual D"])
+            int(row["Residual S"])
+            * int(row["Residual P"])
+            * int(row["Residual D"])
         )
     st.success("Saved!")
 
-# show wizard DataFrame so far
-st.dataframe(st.session_state.wizard_df, use_container_width=True)
+# Display wizard DataFrame with colours
+st.dataframe(
+    st.session_state.wizard_df.style.applymap(
+        colour_scores, subset=["Risk Score", "Residual Score"]
+    ),
+    use_container_width=True,
+)
 
-st.markdown("---")                # visual divider between sections
+st.markdown("---")
 
 # ------------------------------------------------------------------
-# SECTION B ─────────────────────────────────────────────────────────
-# FILE-UPLOAD fallback (your original feature)
+# SECTION B – FILE UPLOAD (fallback / review)
 # ------------------------------------------------------------------
 st.header("📤 Upload an existing assessment")
 
-uploaded = st.file_uploader("Upload your risk template (.xlsx)", type=["xlsx"])
+uploaded = st.file_uploader(
+    "Upload your risk template (.xlsx)", type=["xlsx"]
+)
 
-if uploaded is not None:
-    df = pd.read_excel(uploaded, sheet_name="Assessment")
-else:
-    st.info("No file uploaded – using blank template")
-    df = default_df.copy()
+df = (
+    pd.read_excel(uploaded, sheet_name="Assessment")
+    if uploaded is not None
+    else default_df.copy()
+)
 
-st.dataframe(df, use_container_width=True)
+st.dataframe(
+    df.style.applymap(colour_scores, subset=["Risk Score", "Residual Score"]),
+    use_container_width=True,
+)
 
-# download red risks if present
+# Download high risks
 if "Risk Score" in df.columns and st.button("Download filtered High risks"):
     high = df[df["Risk Score"] >= 40]
-    st.download_button("Download CSV", data=high.to_csv(index=False), file_name="high_risks.csv")
+    st.download_button(
+        "Download CSV",
+        data=high.to_csv(index=False),
+        file_name="high_risks.csv",
+    )
