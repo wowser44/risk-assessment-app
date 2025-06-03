@@ -34,7 +34,6 @@
     "field": "Applicable Regulations",
     "type": "text"
   },
-
   {
     "id": "Q-INT-1",
     "role": "QA",
@@ -70,7 +69,6 @@
     "field": "Historical Deviations?",
     "type": "text"
   },
-
   {
     "id": "I-ARCH-1",
     "role": "IT",
@@ -106,7 +104,6 @@
     "field": "Internet Endpoints?",
     "type": "text"
   },
-
   {
     "id": "SCOR-S",
     "role": "All",
@@ -114,10 +111,10 @@
     "field": "Severity (S)",
     "type": "select",
     "options": {
-      "4": "S4 – Death or life-threatening injury",
-      "3": "S3 – Non-reversible impairment / hospitalisation",
-      "2": "S2 – Reversible injury or product recall",
-      "1": "S1 – No patient harm; only compliance impact"
+      "4": "S4 \u2013 Death or life-threatening injury",
+      "3": "S3 \u2013 Non-reversible impairment / hospitalisation",
+      "2": "S2 \u2013 Reversible injury or product recall",
+      "1": "S1 \u2013 No patient harm; only compliance impact"
     }
   },
   {
@@ -127,10 +124,10 @@
     "field": "Probability (P)",
     "type": "select",
     "options": {
-      "4": "P4 – ≥ 1 in 100 (Frequent)",
-      "3": "P3 – 1 in 100–1 000 (Occasional)",
-      "2": "P2 – 1 in 1 000–10 000 (Remote)",
-      "1": "P1 – < 1 in 10 000 (Improbable)"
+      "4": "P4 \u2013 \u2265 1 in 100 (Frequent)",
+      "3": "P3 \u2013 1 in 100\u20131 000 (Occasional)",
+      "2": "P2 \u2013 1 in 1 000\u201310 000 (Remote)",
+      "1": "P1 \u2013 < 1 in 10 000 (Improbable)"
     }
   },
   {
@@ -140,9 +137,9 @@
     "field": "Detectability (D)",
     "type": "select",
     "options": {
-      "3": "D3 – Undetectable",
-      "2": "D2 – Usually detected by operator / QC",
-      "1": "D1 – Automatically blocked / alarmed"
+      "3": "D3 \u2013 Undetectable",
+      "2": "D2 \u2013 Usually detected by operator / QC",
+      "1": "D1 \u2013 Automatically blocked / alarmed"
     }
   },
   {
