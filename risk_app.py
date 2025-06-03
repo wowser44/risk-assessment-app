@@ -32,14 +32,21 @@ if "wizard_df" not in st.session_state:
     st.session_state.wizard_df = default_df.copy().iloc[0:0]
 
 # pick which question we’re on
-q_idx = st.number_input(
-    "Question #", min_value=0, max_value=len(QUESTIONS) - 1,
-    step=1, key="q_idx"
-)
-q = QUESTIONS[int(q_idx)]
+if "q_idx" not in st.session_state:
+    st.session_state.q_idx = 0            # start at first question
 
-# show the question prompt
-st.subheader(f"{q['role']} Q: {q['prompt']}")
+def go(step: int):
+    st.session_state.q_idx = (
+        st.session_state.q_idx + step
+    ) % len(QUESTIONS)                    # wrap around
+
+col_prev, col_next = st.columns(2)
+with col_prev:
+    st.button("⬅️ Prev", on_click=go, args=(-1,))
+with col_next:
+    st.button("Next ➡️", on_click=go, args=(+1,))
+
+q = QUESTIONS[st.session_state.q_idx]
 
 # draw the right input control
 if q["type"] == "text":
