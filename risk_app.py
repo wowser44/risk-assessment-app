@@ -31,6 +31,20 @@ st.header("🧭 Guided risk entry")
 if "wizard_df" not in st.session_state:
     st.session_state.wizard_df = default_df.copy().iloc[0:0]
 
+roles = sorted({q["role"] for q in QUESTIONS if q["role"] != "All"})
+chosen_role = st.selectbox("Role filter", ["All"] + roles)
+
+# filter list just for this display cycle
+visible_questions = [
+    q for q in QUESTIONS
+    if chosen_role == "All" or q["role"] == chosen_role
+]
+# keep index in bounds
+if st.session_state.q_idx >= len(visible_questions):
+    st.session_state.q_idx = 0
+q = visible_questions[st.session_state.q_idx]
+
+
 # pick which question we’re on
 if "q_idx" not in st.session_state:
     st.session_state.q_idx = 0            # start at first question
@@ -38,7 +52,7 @@ if "q_idx" not in st.session_state:
 def go(step: int):
     st.session_state.q_idx = (
         st.session_state.q_idx + step
-    ) % len(QUESTIONS)                    # wrap around
+    ) % len(visible_questions)                    # wrap around
 
 col_prev, col_next = st.columns(2)
 with col_prev:
@@ -46,7 +60,7 @@ with col_prev:
 with col_next:
     st.button("Next ➡️", on_click=go, args=(+1,))
 
-q = QUESTIONS[st.session_state.q_idx]
+q = visible_questions[st.session_state.q_idx]
 
 # draw the right input control
 if q["type"] == "text":
@@ -68,13 +82,29 @@ if st.button("Save answer"):
     target_col = q["field"]
     st.session_state.wizard_df.at[row_idx, target_col] = answer
 
-    # auto-calculate risk score when S, P, D present
+    # ── Inherent risk (score columns E/J in Excel) ──
     row = st.session_state.wizard_df.iloc[row_idx]
-    if all(pd.notna(row[c]) for c in ["Severity (S)", "Probability (P)", "Detectability (D)"]):
+    ready = all(
+        pd.notna(row[c]) for c in ["Severity (S)", "Probability (P)", "Detectability (D)"]
+    )
+    if ready:
         st.session_state.wizard_df.at[row_idx, "Risk Score"] = (
             int(row["Severity (S)"]) *
             int(row["Probability (P)"]) *
             int(row["Detectability (D)"])
+        )
+
+    # ── Residual-risk round: when Mitigation just saved ──
+    if q["field"] == "Mitigation" and ready:
+        # copy inherent S/P/D across
+        st.session_state.wizard_df.at[row_idx, "Residual S"] = row["Severity (S)"]
+        st.session_state.wizard_df.at[row_idx, "Residual P"] = row["Probability (P)"]
+        st.session_state.wizard_df.at[row_idx, "Residual D"] = row["Detectability (D)"]
+        # calculate residual score (unchanged numbers for now)
+        st.session_state.wizard_df.at[row_idx, "Residual Score"] = (
+            int(row["Residual S"]) *
+            int(row["Residual P"]) *
+            int(row["Residual D"])
         )
     st.success("Saved!")
 
