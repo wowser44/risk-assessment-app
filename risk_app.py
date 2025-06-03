@@ -47,7 +47,7 @@ if q["type"] == "text":
 elif q["type"] == "select":
     friendly = list(q["options"].values())
     choice = st.selectbox("Choose one", friendly)
-    answer = {v: k for k, v in q["options"].items()}[choice]  # map back to numeric
+    answer = int({v: k for k, v in q["options"].items()}[choice])  # numeric int
 
 # save the answer into the hidden DataFrame
 if st.button("Save answer"):
